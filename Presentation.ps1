@@ -46,7 +46,7 @@ invoke-command  -Session $session -scriptblock {
     $configfile = "c:\scripts\config.json"
     Open-WebJEAFile -Path $configfile
     Set-WebJEAConfig -PermittedGroups @("domain1\group3") -LogParameters $true
-    Get-WebJEAConfig
+    Get-WebJEAConfig | fl title, basepath, defaultcommandid, logparameters, permittedgroups
     Save-WebJEAFile
 }
 
@@ -58,7 +58,8 @@ code d1.ps1
 
 invoke-command -Session $session -scriptblock {
     Open-WebJEAFile -Path $configfile
-    New-WebJEACommand -CommandId 'd1' -DisplayName 'Demo1' -Script 'd1.ps1' -PermittedGroups @('*')
+    New-WebJEACommand -CommandId 'd1' -DisplayName 'Demo1' -Script 'd1.ps1' `
+        -PermittedGroups @('*')
     set-webjeaconfig -DefaultCommandId 'd1'
     Save-WebJEAFile 
 }
@@ -76,7 +77,8 @@ code d2.ps1
 
 invoke-command -Session $session -scriptblock {
     Open-WebJEAFile -Path $configfile
-    New-WebJEACommand -CommandId 'd2' -DisplayName 'Demo2' -Script 'd2.ps1' -PermittedGroups @('domain1\group3')
+    New-WebJEACommand -CommandId 'd2' -DisplayName 'Demo2' -Script 'd2.ps1' `
+        -PermittedGroups @('domain1\group3')
     Save-WebJEAFile 
 }
 
@@ -87,13 +89,14 @@ start "https://$computername/webjea?cmdid=d2"
 ############################################
 #add demo3
 ####################################d########
-#show links with prefilled data
+#shows default values
 #show shows description, other validation settings 
 code d3.ps1
 
 invoke-command -Session $session -scriptblock {
     Open-WebJEAFile -Path $configfile
-    New-WebJEACommand -CommandId 'd3' -DisplayName 'Demo3' -Script 'd3.ps1' -PermittedGroups @('domain1\group3')
+    New-WebJEACommand -CommandId 'd3' -DisplayName 'Demo3' -Script 'd3.ps1' `
+        -PermittedGroups @('domain1\group3')
     Save-WebJEAFile 
 }
 
@@ -104,14 +107,17 @@ start "https://$computername/webjea?cmdid=d3"
 ############################################
 #add demo4
 ############################################
+#show links with prefilled data
 #show onload, verbose
 #modifying date, string behaviors with directives
-code d4.ps1 d4o.ps1
+code d4o.ps1 d4.ps1
 
 invoke-command -Session $session -scriptblock {
     Open-WebJEAFile -Path $configfile
     ##### onload, logparameters 
-    New-WebJEACommand -CommandId 'd4' -DisplayName 'Demo4' -Script 'd4.ps1' -OnloadScript 'd4o.ps1' -PermittedGroups @('domain1\group3') -LogParameters $false
+    New-WebJEACommand -CommandId 'd4' -DisplayName 'Demo4' -Script 'd4.ps1' `
+        -OnloadScript 'd4o.ps1' -PermittedGroups @('domain1\group3') `
+        -LogParameters $false
     Save-WebJEAFile 
 }
 
@@ -167,7 +173,8 @@ start "https://$computername/webjea?cmdid=overview"
 ############################################
 #auditing
 $usagefile = "w:\scripts\webjea-usage.log"
-$usage=import-csv -Path $usagefile -Delimiter "|" -Header @("dtstamp","Hostname","Username","Action","Script","RuntimeSeconds")
+$usage=import-csv -Path $usagefile -Delimiter "|" `
+    -Header @("dtstamp","Hostname","Username","Action","Script","RuntimeSeconds")
 $usage | ft
 $usage | ?{$_.action -eq "Executed"} | ft
 $usage | ?{$_.action -eq "Executing"} | ft
